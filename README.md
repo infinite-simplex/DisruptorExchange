@@ -1,11 +1,11 @@
-# Disruptor Exchange
+# ToyExchange
 
 [![CI](https://github.com/infinite-simplex/ToyExchange/actions/workflows/ci.yml/badge.svg)](https://github.com/infinite-simplex/ToyExchange/actions/workflows/ci.yml)
 
 A low-latency exchange pipeline built around an LMAX Disruptor-style
 core — lock-free SPSC ring buffers, a replicated and leader-elected matching
-tier with real failover, a sequenced ingress gateway with a durable log and
-gap-fill retransmit. The pipeline is product-agnostic: `NetworkGateway` and
+tier with real failover, a sequenced ingress gateway with a memory-mapped log
+and gap-fill retransmit. The pipeline is product-agnostic: `NetworkGateway` and
 `MatchingService` are templated on the wire protocol and command type, so a
 product plugs its own matching logic into the same ingress → replication →
 egress pipeline rather than rebuilding it.
@@ -21,10 +21,10 @@ dependency rather than living inside it.
 ## Products built on it
 
 - **[EventContractLOB](https://github.com/infinite-simplex/EventContractLOB)**
-  — a NASDAQ OUCH/ITCH-speaking limit order book for binary-outcome event
-  contracts. The reference implementation; start there to see the pipeline
-  in use.
-- **[BatchGPU](https://github.com/infinite-simplex/BatchGPU)** — a frequent
+  — a limit order book for binary-outcome event contracts that speaks NASDAQ
+  OUCH 4.2 on ingress. The reference implementation; start there to see the
+  pipeline in use.
+- **[BatchGPU](https://github.com/infinite-simplex/BatchGPU)** — an hourly
   batch auction for GPU compute capacity, proving the pipeline generalizes
   beyond a continuous limit order book.
 
@@ -62,6 +62,10 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
 ```
 
+`-DTOYEXCHANGE_BENCHMARKS=ON` also builds the opt-in benchmark tools in
+`Benchmarks/` (`IngressBench` runs the real gateway and receivers without a
+product; the write-up's ingress and Aeron comparison numbers came from it).
+
 ## Testing
 
 ```bash
@@ -79,6 +83,32 @@ publishing, epoch fencing, ordinal accounting and loss reports, failover to the
 surviving replica). The tests use stand-in command and event types. A
 product repo carries its own tests for whatever it builds on top (matching
 engine, real wire protocol). CI runs this on every push.
+
+## Known limits
+
+Core's own limits; a product lists its own in its repo. The
+[write-up](https://infinite-simplex.github.io/InfiniteLabs/#ToyExchangeCore)
+has the detail.
+
+- **One gateway.** The sequencer, sequence store, retransmit server, arbiter and
+  egress gateway live in one process, which is not fault tolerant.
+- **The log is a bounded buffer, not storage.** The sequence store is a
+  memory-mapped ring (2^20 slots by default) that is zeroed every time the gateway
+  starts. It lets live replicas recover lost datagrams; it is not crash-recovery
+  storage. A replica that starts or restarts replays from sequence 0, which works only
+  while the newest sequence number is below the ring's capacity, and replicas must be
+  restarted along with the gateway.
+- **Election is a central arbiter with a fencing token**, not a consensus protocol
+  among the replicas, and it re-evaluates only when a heartbeat arrives.
+- **Egress is one thread** that receives, encodes and delivers every event. Tuned, it
+  used about a third of a core at 500,000 orders/s and lost nothing, but more flow
+  can overwhelm it.
+- **Idle cost.** Three threads per replica spin at 100% whether or not traffic
+  arrives, and nothing is pinned or tuned.
+- **The trace arena has 2^20 slots.** A command that rests long enough for the ring
+  to wrap loses its timing record; a counter shows it.
+- **Every measurement is from one machine** with every process on it and the
+  multicast groups on loopback, so none of them measures a network.
 
 ## License
 
