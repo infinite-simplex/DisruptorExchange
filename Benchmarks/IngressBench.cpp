@@ -1,5 +1,5 @@
 // End-to-end ingress benchmark. Not part of the default build: configure with
-// -DTOYEXCHANGE_BENCHMARKS=ON (see Benchmarks/README.md).
+// -DDISRUPTOREXCHANGE_BENCHMARKS=ON (see Benchmarks/README.md).
 //
 //   TCP client --> NetworkGateway --> transport --> R receivers --> R drain threads
 //
@@ -15,11 +15,11 @@
 // through the same client, the same drain threads and the same accounting.
 
 #include "BenchRig.hpp"
-#ifdef TOYEXCHANGE_AERON
+#ifdef DISRUPTOREXCHANGE_AERON
 #include "AeronRig.hpp"
-#define TOYEXCHANGE_AERON_USAGE ", aeron-ipc, aeron-udp"
+#define DISRUPTOREXCHANGE_AERON_USAGE ", aeron-ipc, aeron-udp"
 #else
-#define TOYEXCHANGE_AERON_USAGE " (build with the Aeron options for aeron-ipc and aeron-udp)"
+#define DISRUPTOREXCHANGE_AERON_USAGE " (build with the Aeron options for aeron-ipc and aeron-udp)"
 #endif
 #include "NetworkGateway.hpp"
 #include "MulticastIngressReceiver.hpp"
@@ -75,7 +75,7 @@ public:
 
 private:
     static std::string StorePath() {
-        const std::string path = "/tmp/toyexchange_ingress_bench.dat";
+        const std::string path = "/tmp/disruptorexchange_ingress_bench.dat";
         std::remove(path.c_str());
         return path;
     }
@@ -161,7 +161,7 @@ RunResult RunOnce(const Options& opt) {
     if (opt.transport == "handwritten") {
         rig = std::make_unique<HandwrittenRig>(opt);
     }
-#ifdef TOYEXCHANGE_AERON
+#ifdef DISRUPTOREXCHANGE_AERON
     else if (opt.transport == "aeron-ipc" || opt.transport == "aeron-udp") {
         rig = MakeAeronRig(opt);
     }
@@ -356,7 +356,7 @@ void Usage() {
               "             [--driver-pid PID[,PID...]] [--aeron-dir DIR] [--aeron-replica-dirs DIR[,DIR...]]\n"
               "             [--aeron-channel URI] [--aeron-idle busy|backoff]\n"
               "             [--stall-replica N --stall-at S --stall-ms MS]\n"
-              "transports: handwritten" TOYEXCHANGE_AERON_USAGE);
+              "transports: handwritten" DISRUPTOREXCHANGE_AERON_USAGE);
 }
 
 } // namespace

@@ -6,7 +6,7 @@ store, retransmit server) on throughput, latency or reliability, enough to justi
 ## Setup
 
 - Machine: AMD Ryzen 7 5800X (8 cores, 16 threads), WSL2, kernel 6.18, loopback. Every process is on one host.
-- Core: v0.2.1 plus the `NetworkGateway` fan-out seam added with these benchmarks.
+- Core: commit 5c253d6 plus the `NetworkGateway` fan-out seam added with these benchmarks.
 - Aeron: 1.53.3, the **C media driver** (`aeronmd`) and the C++ client. Not the Java driver.
 - Harness: `IngressBench` (see `README.md`). Open-loop client, 128-byte records, 1,400-byte
   datagram or message limit (10 records), 2 or 3 replicas, 1 s warm-up, 5 s window, 3 repeats, medians.

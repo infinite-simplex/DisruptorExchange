@@ -33,8 +33,8 @@ add_subdirectory(Core)
 add_subdirectory(PerformanceService)
 
 # Benchmark tools (Benchmarks/). Off by default so CI and consumers do not build them.
-option(TOYEXCHANGE_BENCHMARKS "Build the benchmark tools" OFF)
-if(TOYEXCHANGE_BENCHMARKS)
+option(DISRUPTOREXCHANGE_BENCHMARKS "Build the benchmark tools" OFF)
+if(DISRUPTOREXCHANGE_BENCHMARKS)
     add_subdirectory(Benchmarks)
 endif()
 

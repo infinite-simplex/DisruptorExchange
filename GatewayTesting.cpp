@@ -54,7 +54,7 @@ NetworkConfig GatewayConfig(const char* group, uint16_t multicastPort, uint16_t 
 }
 
 std::string FreshStorePath(const char* name) {
-    const std::string path = std::string("/tmp/toyexchange_gateway_") + name + ".dat";
+    const std::string path = std::string("/tmp/disruptorexchange_gateway_") + name + ".dat";
     std::remove(path.c_str());
     return path;
 }

@@ -1,6 +1,6 @@
-# ToyExchange
+# DisruptorExchange
 
-[![CI](https://github.com/infinite-simplex/ToyExchange/actions/workflows/ci.yml/badge.svg)](https://github.com/infinite-simplex/ToyExchange/actions/workflows/ci.yml)
+[![CI](https://github.com/infinite-simplex/DisruptorExchange/actions/workflows/ci.yml/badge.svg)](https://github.com/infinite-simplex/DisruptorExchange/actions/workflows/ci.yml)
 
 A low-latency exchange pipeline built around an LMAX Disruptor-style
 core — lock-free SPSC ring buffers, a replicated and leader-elected matching
@@ -29,7 +29,7 @@ dependency rather than living inside it.
   beyond a continuous limit order book.
 
 Design rationale and tradeoffs are written up in the
-[Toy Exchange Core design write-up](https://infinite-simplex.github.io/InfiniteLabs/#ToyExchangeCore).
+[DisruptorExchange Core design write-up](https://infinite-simplex.github.io/InfiniteLabs/#DisruptorExchangeCore).
 
 ## What a product must provide
 
@@ -62,7 +62,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
 ```
 
-`-DTOYEXCHANGE_BENCHMARKS=ON` also builds the opt-in benchmark tools in
+`-DDISRUPTOREXCHANGE_BENCHMARKS=ON` also builds the opt-in benchmark tools in
 `Benchmarks/` (`IngressBench` runs the real gateway and receivers without a
 product; the write-up's ingress and Aeron comparison numbers came from it).
 
@@ -87,7 +87,7 @@ engine, real wire protocol). CI runs this on every push.
 ## Known limits
 
 Core's own limits; a product lists its own in its repo. The
-[write-up](https://infinite-simplex.github.io/InfiniteLabs/#ToyExchangeCore)
+[write-up](https://infinite-simplex.github.io/InfiniteLabs/#DisruptorExchangeCore)
 has the detail.
 
 - **One gateway.** The sequencer, sequence store, retransmit server, arbiter and

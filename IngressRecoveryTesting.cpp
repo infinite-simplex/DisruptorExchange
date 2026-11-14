@@ -159,7 +159,7 @@ private:
 
 TEST(IngressRecoveryTest, LateJoinerReplaysFullHistoryBeforeTheLiveMessage) {
     constexpr uint64_t HISTORY = 2'000; // four retransmit batches
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_late_join.dat", 4096);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_late_join.dat", 4096);
     for (uint64_t seq = 0; seq < HISTORY; ++seq) store.append(MakeMessage(seq)); // sequenced before any replica existed
 
     RetransmitServer<TestCommand> server(store, 45301);
@@ -187,7 +187,7 @@ TEST(IngressRecoveryTest, LateJoinerReplaysFullHistoryBeforeTheLiveMessage) {
 TEST(IngressRecoveryTest, RestartedReplicaReplaysTheSameStreamFromSequenceZero) {
     constexpr uint64_t FIRST_RUN = 100;     // delivered live to the first incarnation
     constexpr uint64_t WHILE_DOWN = 50;     // sequenced while no replica was running
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_restart.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_restart.dat", 1024);
     RetransmitServer<TestCommand> server(store, 45302);
     server.start();
     const NetworkConfig config = MakeConfig("239.255.1.2", 25202, 45302, false);
@@ -243,7 +243,7 @@ TEST(IngressRecoveryTest, RestartedReplicaReplaysTheSameStreamFromSequenceZero) 
 
 TEST(IngressRecoveryTest, JoinerCanStillCatchUpWhenTheWholeHistoryJustFitsInTheRing) {
     constexpr uint64_t CAPACITY = 1024;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_ring_fits.dat", CAPACITY);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_ring_fits.dat", CAPACITY);
     for (uint64_t seq = 0; seq < CAPACITY - 1; ++seq) store.append(MakeMessage(seq));
 
     RetransmitServer<TestCommand> server(store, 45303);
@@ -267,7 +267,7 @@ TEST(IngressRecoveryTest, JoinerCanStillCatchUpWhenTheWholeHistoryJustFitsInTheR
 
 TEST(IngressRecoveryTest, JoinerStopsWhenOneMoreMessageEvictsSequenceZero) {
     constexpr uint64_t CAPACITY = 1024;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_ring_wrapped.dat", CAPACITY);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_ring_wrapped.dat", CAPACITY);
     for (uint64_t seq = 0; seq < CAPACITY; ++seq) store.append(MakeMessage(seq));
 
     RetransmitServer<TestCommand> server(store, 45304);
@@ -326,7 +326,7 @@ static void ExpectReplayThrough(UnreliableRetransmitServer& server, SequenceStor
 
 TEST(IngressRecoveryTest, RetryAfterPartialBatchDoesNotDuplicateOrSkipRecords) {
     // The network drops the end of the first reply: records 100 .. 499.
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_lossy.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_lossy.dat", 1024);
     UnreliableRetransmitServer server(store, 45305, SequenceRange(100, 500));
     ExpectReplayThrough(server, store, "239.255.1.5", 25205, 45305);
 }
@@ -334,7 +334,7 @@ TEST(IngressRecoveryTest, RetryAfterPartialBatchDoesNotDuplicateOrSkipRecords) {
 TEST(IngressRecoveryTest, RecordLostInTheMiddleOfAReplyIsNotReplacedByALaterOne) {
     // The network drops records 100 .. 123 but delivers 124 .. 499 after them.
     // The receiver must not take record 124 as the one it still waits for.
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_lossy_middle.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_lossy_middle.dat", 1024);
     UnreliableRetransmitServer server(store, 45311, SequenceRange(100, 124));
     ExpectReplayThrough(server, store, "239.255.1.11", 25211, 45311);
 }
@@ -342,7 +342,7 @@ TEST(IngressRecoveryTest, RecordLostInTheMiddleOfAReplyIsNotReplacedByALaterOne)
 TEST(IngressRecoveryTest, DuplicatedRetransmitRepliesAreNotAppliedTwice) {
     // Every record datagram arrives twice. The copy of record 499 is still in
     // the socket when the second batch starts, so it is a stale reply there.
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_lossy_dup.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_lossy_dup.dat", 1024);
     UnreliableRetransmitServer server(store, 45312, {}, true);
     ExpectReplayThrough(server, store, "239.255.1.12", 25212, 45312);
 }
@@ -352,7 +352,7 @@ TEST(IngressRecoveryTest, IdleProbeResumesAtARecordLostInTheMiddleOfAReply) {
     // drops record 3. The first probe delivers 0 .. 2 and ignores 4 .. 9, and
     // the next probe, one idle timeout later, delivers 3 .. 9.
     constexpr uint64_t STORED = 10;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_probe_middle.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_probe_middle.dat", 1024);
     for (uint64_t seq = 0; seq < STORED; ++seq) store.append(MakeMessage(seq));
 
     UnreliableRetransmitServer server(store, 45313, { 3 });
@@ -377,7 +377,7 @@ TEST(IngressRecoveryTest, IdleProbeResumesAtARecordLostInTheMiddleOfAReply) {
 
 TEST(IngressRecoveryTest, DuplicateAndLateDatagramsAreNotAppliedTwice) {
     constexpr uint64_t TOTAL = 7;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_duplicates.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_duplicates.dat", 1024);
     for (uint64_t seq = 0; seq < TOTAL; ++seq) store.append(MakeMessage(seq));
 
     RetransmitServer<TestCommand> server(store, 45309);
@@ -408,7 +408,7 @@ TEST(IngressRecoveryTest, DuplicateAndLateDatagramsAreNotAppliedTwice) {
 
 TEST(IngressRecoveryTest, IdleProbeCatchesUpALateJoinerWithoutAnyLiveMessage) {
     constexpr uint64_t HISTORY = 2'000;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_probe_late_join.dat", 4096);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_probe_late_join.dat", 4096);
     for (uint64_t seq = 0; seq < HISTORY; ++seq) store.append(MakeMessage(seq));
 
     RetransmitServer<TestCommand> server(store, 45306);
@@ -441,7 +441,7 @@ TEST(IngressRecoveryTest, IdleProbeCatchesUpALateJoinerWithoutAnyLiveMessage) {
 TEST(IngressRecoveryTest, IdleProbeRecoversTheLostTailOfABurst) {
     constexpr uint64_t DELIVERED_LIVE = 100;
     constexpr uint64_t LOST_TAIL = 50;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_probe_tail.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_probe_tail.dat", 1024);
     RetransmitServer<TestCommand> server(store, 45307);
     server.start();
     const NetworkConfig config = MakeConfig("239.255.1.7", 25207, 45307, true);
@@ -479,7 +479,7 @@ TEST(IngressRecoveryTest, IdleProbeRecoversTheLostTailOfABurst) {
 
 TEST(IngressRecoveryTest, IdleProbeStopsWhenTheHistoryWasEvicted) {
     constexpr uint64_t CAPACITY = 1024;
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_probe_wrapped.dat", CAPACITY);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_probe_wrapped.dat", CAPACITY);
     for (uint64_t seq = 0; seq <= CAPACITY; ++seq) store.append(MakeMessage(seq)); // the last one evicts sequence 0
 
     RetransmitServer<TestCommand> server(store, 45308);
@@ -591,7 +591,7 @@ TEST(IngressRecoveryTest, RecordsInsideADatagramThatWereAlreadyDeliveredAreSkipp
 }
 
 TEST(IngressRecoveryTest, DatagramThatStartsPastTheNextExpectedRecordRecoversTheGapFirst) {
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_batch_gap.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_batch_gap.dat", 1024);
     for (uint64_t seq = 0; seq < 10; ++seq) store.append(MakeMessage(seq));
     RetransmitServer<TestCommand> server(store, 45352);
     server.start();
@@ -687,7 +687,7 @@ TEST(IngressRecoveryTest, RetransmitServerAnswersARangeInFewDatagrams) {
     const size_t perDatagram = RecordsPerDatagram<TestCommand>(DEFAULT_DATAGRAM_MAX_BYTES, sizeof(RetransmitReplyHeader));
     ASSERT_GT(perDatagram, 1u) << "the test record must fit several times in one datagram";
 
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_reply_batch.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_reply_batch.dat", 1024);
     for (uint64_t seq = 0; seq < RECORDS; ++seq) store.append(MakeMessage(seq));
     RetransmitServer<TestCommand> server(store, 45360);
     server.start();
@@ -713,7 +713,7 @@ TEST(IngressRecoveryTest, RetransmitServerAnswersARangeInFewDatagrams) {
 }
 
 TEST(IngressRecoveryTest, RetransmitServerEndsAShortRangeWithOneStatusDatagram) {
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_reply_status.dat", 64);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_reply_status.dat", 64);
     for (uint64_t seq = 0; seq < 100; ++seq) store.append(MakeMessage(seq)); // ring of 64: 36 .. 99 remain
     RetransmitServer<TestCommand> server(store, 45361);
     server.start();
@@ -742,7 +742,7 @@ TEST(IngressRecoveryTest, StaleReplyThatOverlapsTheNextNeededRecordIsUsedFromTha
     // Before the real reply to each request that starts at 10 or later, the fake
     // server sends a late copy of 20 older records, 10 of them before the
     // start. The receiver must take only the ones it still needs.
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_lossy_overlap.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_lossy_overlap.dat", 1024);
     UnreliableRetransmitServer server(store, 45314, {}, false, true);
     ExpectReplayThrough(server, store, "239.255.1.14", 25214, 45314);
 }
@@ -779,7 +779,7 @@ TEST(IngressRecoveryTest, SpinningReceiverDeliversInOrderAndStillWakesAfterAQuie
 }
 
 TEST(IngressRecoveryTest, SpinningReceiverStillProbesWhenIdle) {
-    SequenceStore<TestCommand> store("/tmp/toyexchange_ingress_spin_probe.dat", 1024);
+    SequenceStore<TestCommand> store("/tmp/disruptorexchange_ingress_spin_probe.dat", 1024);
     for (uint64_t seq = 0; seq < 10; ++seq) store.append(MakeMessage(seq));
     RetransmitServer<TestCommand> server(store, 45371);
     server.start();

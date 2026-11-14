@@ -3,7 +3,7 @@
 Tools for measuring Core. They are not part of the default build.
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTOYEXCHANGE_BENCHMARKS=ON
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDISRUPTOREXCHANGE_BENCHMARKS=ON
 cmake --build build -j"$(nproc)" --target IngressBench
 ```
 
@@ -58,8 +58,8 @@ The Aeron transports are an experiment (`Benchmarks/AeronRig.hpp`). They need an
 build (C driver and C++ client, built with CMake 3.30 or later):
 
 ```bash
-cmake -S . -B build -DTOYEXCHANGE_BENCHMARKS=ON \
-    -DTOYEXCHANGE_AERON_SRC=$HOME/aeron/src -DTOYEXCHANGE_AERON_BUILD=$HOME/aeron/build
+cmake -S . -B build -DDISRUPTOREXCHANGE_BENCHMARKS=ON \
+    -DDISRUPTOREXCHANGE_AERON_SRC=$HOME/aeron/src -DDISRUPTOREXCHANGE_AERON_BUILD=$HOME/aeron/build
 ```
 
 The media driver (`aeronmd`) is a separate process. Pass its pid with `--driver-pid` so its CPU

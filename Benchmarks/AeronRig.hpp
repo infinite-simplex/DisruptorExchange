@@ -1,6 +1,6 @@
 #pragma once
 // Aeron transport for IngressBench. Compiled only when Aeron is available
-// (TOYEXCHANGE_AERON, see Benchmarks/CMakeLists.txt). Experimental: it exists to
+// (DISRUPTOREXCHANGE_AERON, see Benchmarks/CMakeLists.txt). Experimental: it exists to
 // compare an Aeron transport with the hand-written one through the same harness.
 // If the comparison favours Aeron, the fan-out and receiver move into Core and
 // the settings move into NetworkConfig.
@@ -230,7 +230,7 @@ public:
 
 private:
     static std::string StorePath() {
-        const std::string path = "/tmp/toyexchange_ingress_bench.dat";
+        const std::string path = "/tmp/disruptorexchange_ingress_bench.dat";
         std::remove(path.c_str());
         return path;
     }
