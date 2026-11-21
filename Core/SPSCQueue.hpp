@@ -3,11 +3,18 @@
 #include <cstddef>
 #include <new>
 
+#ifdef __cpp_lib_hardware_interference_size
+inline constexpr size_t kCacheLine = std::hardware_destructive_interference_size;
+#else
+inline constexpr size_t kCacheLine = 64;
+#endif
+
 template <typename T, size_t Capacity = 1024>
 class SPSCQueue {
 public:
     SPSCQueue() : m_head(0), m_tail(0) {
         // Ensure Capacity is a power of 2 for fast bitwise modulo operations
+        static_assert(Capacity > 0, "Capacity must be non-zero");
         static_assert((Capacity & (Capacity - 1)) == 0, "Capacity must be a power of 2");
     }
 
@@ -49,13 +56,14 @@ public:
     }
 
     bool empty() const {
-        return m_head.load(std::memory_order_relaxed) == m_tail.load(std::memory_order_relaxed);
+        return size() == 0;
     }
 
     size_t size() const {
-        size_t tail = m_tail.load(std::memory_order_relaxed);
-        size_t head = m_head.load(std::memory_order_relaxed);
-        return (tail >= head) ? (tail - head) : (Capacity - (head - tail));
+        const size_t head = m_head.load(std::memory_order_acquire);
+        const size_t tail = m_tail.load(std::memory_order_acquire);
+        const size_t n = tail - head;
+        return n > Capacity ? Capacity : n;
     }
 
 private:
