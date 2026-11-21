@@ -67,12 +67,7 @@ public:
     }
 
 private:
-    // Pre-allocated fixed-size ring buffer array to avoid runtime allocations (malloc/new)
-    T m_buffer[Capacity];
-
-    // CRITICAL LOW-LATENCY OPTIMIZATION: 
-    // alignas(64) pads the variables to separate CPU cache lines.
-    // This stops the Ingress thread and Orderbook thread from fighting over the same cache hardware.
-    alignas(64) std::atomic<size_t> m_head;
-    alignas(64) std::atomic<size_t> m_tail;
+    alignas(kCacheLine) T m_buffer[Capacity];
+    alignas(kCacheLine) std::atomic<size_t> m_head;
+    alignas(kCacheLine) std::atomic<size_t> m_tail;
 };
